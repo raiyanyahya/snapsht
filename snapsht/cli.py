@@ -23,7 +23,7 @@ LATEST_CHROME_DRIVER_VERSION = (
 
 
 @click.group()
-@click.version_option(version="1.0.0")
+@click.version_option(version="1.0.1")
 def cli():
     """🦓 Capture full-page screenshots with ease, every time."""
 
