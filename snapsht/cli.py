@@ -23,7 +23,7 @@ LATEST_CHROME_DRIVER_VERSION = (
 
 
 @click.group()
-@click.version_option(version="1.0.1")
+@click.version_option(version="1.0.0")
 def cli():
     """🦓 Capture full-page screenshots with ease, every time."""
 
@@ -49,35 +49,35 @@ def take_screenshot(url, output):
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-gpu")
     options.add_argument("--remote-debugging-port=9222")
-
-    try:
-        # chromedriver_path = "./" + chromedriver_path
-        service = webdriver.chrome.service.Service(chromedriver_path)
-        service.start()
-        driver = webdriver.Remote(service.service_url, options=options)
-        driver.get(url)
-        time.sleep(1)
-        driver.execute_script("window.scrollTo(0, 0);")
-    except WebDriverException:
-        print("❌ Try again with a proper formatted url.")
-        driver.stop_client()
-        sys.exit(1)
-    except Exception:
-        print("❌ Failed to get a screenshot of the webpage.")
-        driver.stop_client()
-        sys.exit(1)
-    original_size = driver.get_window_size()
-    required_width = driver.execute_script(
-        "return document.body.parentNode.scrollWidth"
-    )
-    required_height = driver.execute_script(
-        "return document.body.parentNode.scrollHeight"
-    )
-    driver.set_window_size(required_width, required_height)
-
-    screenshots = []
-    last_height = driver.execute_script("return document.body.scrollHeight")
     with console.status("Taking a snapshot...", spinner="runner"):
+        try:
+            # chromedriver_path = "./" + chromedriver_path
+            service = webdriver.chrome.service.Service(chromedriver_path)
+            service.start()
+            driver = webdriver.Remote(service.service_url, options=options)
+            driver.get(url)
+            time.sleep(1)
+            driver.execute_script("window.scrollTo(0, 0);")
+        except WebDriverException:
+            print("❌ Try again with a proper formatted url.")
+            driver.stop_client()
+            sys.exit(1)
+        except Exception:
+            print("❌ Failed to get a screenshot of the webpage.")
+            driver.stop_client()
+            sys.exit(1)
+        original_size = driver.get_window_size()
+        required_width = driver.execute_script(
+            "return document.body.parentNode.scrollWidth"
+        )
+        required_height = driver.execute_script(
+            "return document.body.parentNode.scrollHeight"
+        )
+        driver.set_window_size(required_width, required_height)
+
+        screenshots = []
+        last_height = driver.execute_script("return document.body.scrollHeight")
+        
         while True:
             try:
                 WebDriverWait(driver, 10).until(
