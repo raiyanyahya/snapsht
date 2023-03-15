@@ -18,8 +18,6 @@ jobs:
             python-version: 3.8
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1.2.0
-
-      - name: build
         run: |
             pip install --upgrade pip
             pip3 install .
