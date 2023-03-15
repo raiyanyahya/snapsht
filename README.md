@@ -17,7 +17,7 @@ I hope you find it useful.
 
 ## Configuration
 
-The application requires you to have the chromium driver available. If you dont have it on the PATH run the `setup` command which will download the correct binary on your system and use it.
+The application requires you to have the chromium driver available. If you dont have it on the PATH run the `setup` command which will download the correct binary on your system and use it. You must also have the chrome browser installed.
 
 ## Installation
 
@@ -44,5 +44,10 @@ Commands:
   setup       ⏬ Download missing chromium driver.
 ```
 
+## Note
 
+Taking screenshots automatically is tough. If you do get errors and dont know why, try adding the `--debug` flag to the `click` command.
+
+
+## Thank you!
 Please feel to create issues or request for features. More options and commands will be added to the application in the near future.

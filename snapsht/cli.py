@@ -31,8 +31,8 @@ def cli():
 @cli.command("click")
 @click.argument("url", type=str)
 @click.option("--output", "-o", default="screenshot.png", help="Output file name")
-@click.option("--timeout", "-t", default="30", help="Time out seconds in case of an error")
-def take_screenshot(url, output, timeout):
+@click.option("--debug", "-d", is_flag=True, help="Enable the debug mode.")
+def take_screenshot(url, output, debug):
     """🎴 Take a full page scrolling screenshot and save it to disk."""
     # determine the path to the chromedriver binary included in the package
     chromedriver_path = pkg_resources.resource_filename(__name__, "chromedriver")
@@ -50,17 +50,23 @@ def take_screenshot(url, output, timeout):
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-gpu")
     options.add_argument("--remote-debugging-port=9222")
-    options.add_argument(f"--timeout={timeout}")
+    # options.add_argument("--timeout=60")
+
     with console.status("Taking a snapshot...", spinner="runner"):
         try:
             # chromedriver_path = "./" + chromedriver_path
             service = webdriver.chrome.service.Service(chromedriver_path)
             service.start()
             driver = webdriver.Remote(service.service_url, options=options)
+
             driver.get(url)
             time.sleep(1)
             driver.execute_script("window.scrollTo(0, 0);")
-        
+            # Inject custom CSS to hide scrollbars
+            hide_scrollbars_js = """
+            document.getElementsByTagName('html')[0].style.overflow = 'hidden';
+            """
+            driver.execute_script(hide_scrollbars_js)
             original_size = driver.get_window_size()
             required_width = driver.execute_script(
                 "return document.body.parentNode.scrollWidth"
@@ -72,31 +78,40 @@ def take_screenshot(url, output, timeout):
 
             screenshots = []
             last_height = driver.execute_script("return document.body.scrollHeight")
-            
+
             while True:
                 try:
                     WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.TAG_NAME, "body"))
                     )
-                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    driver.execute_script(
+                        "window.scrollTo(0, document.body.scrollHeight);"
+                    )
                     WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.TAG_NAME, "body"))
                     )
                     screenshot = driver.get_screenshot_as_png()
                     screenshots.append(screenshot)
-                except WebDriverException:
+                except WebDriverException as e:
                     print("❌ Failed to get a screenshot of the webpage.")
+                    if debug:
+                        print(e)
                     break
                 new_height = driver.execute_script("return document.body.scrollHeight")
                 if new_height == last_height:
                     break
                 last_height = new_height
         except WebDriverException as e:
-            print("❌ Try again with a proper formatted url or check if you have chrome installed.")
-            print(e)
+            print(
+                "❌ Try again with a proper formatted url or check if you have chrome installed."
+            )
+            if debug:
+                print(e)
             sys.exit(1)
-        except Exception:
+        except Exception as e:
             print("❌ Failed to get a screenshot of the webpage.")
+            if debug:
+                print(e)
             sys.exit(1)
     driver.set_window_size(original_size["width"], original_size["height"])
 
