@@ -23,7 +23,7 @@ LATEST_CHROME_DRIVER_VERSION = (
 
 
 @click.group()
-@click.version_option(version="1.0.2")
+@click.version_option(version="1.0.3")
 def cli():
     """🦓 Capture full-page screenshots with ease, every time."""
 
@@ -31,7 +31,8 @@ def cli():
 @cli.command("click")
 @click.argument("url", type=str)
 @click.option("--output", "-o", default="screenshot.png", help="Output file name")
-def take_screenshot(url, output):
+@click.option("--timeout", "-t", default="30", help="Time out seconds in case of an error")
+def take_screenshot(url, output, timeout):
     """🎴 Take a full page scrolling screenshot and save it to disk."""
     # determine the path to the chromedriver binary included in the package
     chromedriver_path = pkg_resources.resource_filename(__name__, "chromedriver")
@@ -49,6 +50,7 @@ def take_screenshot(url, output):
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-gpu")
     options.add_argument("--remote-debugging-port=9222")
+    options.add_argument(f"--timeout={timeout}")
     with console.status("Taking a snapshot...", spinner="runner"):
         try:
             # chromedriver_path = "./" + chromedriver_path
@@ -58,45 +60,43 @@ def take_screenshot(url, output):
             driver.get(url)
             time.sleep(1)
             driver.execute_script("window.scrollTo(0, 0);")
+        
+            original_size = driver.get_window_size()
+            required_width = driver.execute_script(
+                "return document.body.parentNode.scrollWidth"
+            )
+            required_height = driver.execute_script(
+                "return document.body.parentNode.scrollHeight"
+            )
+            driver.set_window_size(required_width, required_height)
+
+            screenshots = []
+            last_height = driver.execute_script("return document.body.scrollHeight")
+            
+            while True:
+                try:
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "body"))
+                    )
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "body"))
+                    )
+                    screenshot = driver.get_screenshot_as_png()
+                    screenshots.append(screenshot)
+                except WebDriverException:
+                    print("❌ Failed to get a screenshot of the webpage.")
+                    break
+                new_height = driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    break
+                last_height = new_height
         except WebDriverException:
             print("❌ Try again with a proper formatted url.")
-            driver.stop_client()
             sys.exit(1)
         except Exception:
             print("❌ Failed to get a screenshot of the webpage.")
-            driver.stop_client()
             sys.exit(1)
-        original_size = driver.get_window_size()
-        required_width = driver.execute_script(
-            "return document.body.parentNode.scrollWidth"
-        )
-        required_height = driver.execute_script(
-            "return document.body.parentNode.scrollHeight"
-        )
-        driver.set_window_size(required_width, required_height)
-
-        screenshots = []
-        last_height = driver.execute_script("return document.body.scrollHeight")
-        
-        while True:
-            try:
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "body"))
-                )
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "body"))
-                )
-                screenshot = driver.get_screenshot_as_png()
-                screenshots.append(screenshot)
-            except WebDriverException:
-                print("❌ Failed to get a screenshot of the webpage.")
-                break
-            new_height = driver.execute_script("return document.body.scrollHeight")
-            if new_height == last_height:
-                break
-            last_height = new_height
-
     driver.set_window_size(original_size["width"], original_size["height"])
 
     screenshot_filename = output
