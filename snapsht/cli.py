@@ -91,8 +91,9 @@ def take_screenshot(url, output, timeout):
                 if new_height == last_height:
                     break
                 last_height = new_height
-        except WebDriverException:
-            print("❌ Try again with a proper formatted url.")
+        except WebDriverException as e:
+            print("❌ Try again with a proper formatted url or check if you have chrome installed.")
+            print(e)
             sys.exit(1)
         except Exception:
             print("❌ Failed to get a screenshot of the webpage.")
