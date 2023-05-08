@@ -31,7 +31,7 @@ setup(
     install_requires=[
         "click==8.1.3",
         "rich==13.3.2",
-        "selenium==4.8.3",
+        "selenium==4.9.1",
         "requests==2.28.2",
     ],
     entry_points={"console_scripts": ["snapsht=snapsht.cli:cli"]},
