@@ -30,7 +30,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "click==8.1.3",
-        "rich==13.3.2",
+        "rich==13.4.2",
         "selenium==4.8.3",
         "requests==2.28.2",
     ],
