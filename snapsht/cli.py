@@ -6,6 +6,7 @@ import time
 import requests
 import zipfile
 from io import BytesIO
+from PIL import Image
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
@@ -119,6 +120,11 @@ def take_screenshot(url, output, debug):
     if len(screenshots) != 0:
         with open(screenshot_filename, "wb") as f:
             f.write(screenshots[0])
+    size = os.path.getsize(screenshot_filename)
+    width, height = Image.open(screenshot_filename).size
+    print(f"✅ Downloaded screenshot as {screenshot_filename}")
+    console.print(f"- [green bold]Size:[/] [bright_black italic]{round(size / 1024, 1)}K[/]", highlight=False)
+    console.print(f"- [green bold]Dimensions:[/] [bright_black italic]{width}x{height}px[/]", highlight=False)
     driver.stop_client()
 
 
